@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { VeoApiClient } from '@/lib/veo-api';
 import { VeoGenerationJob } from '@/types/veo';
 import { Clock, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OperationMonitorProps {
   apiClient: VeoApiClient | null;
@@ -14,6 +15,7 @@ interface OperationMonitorProps {
 }
 
 export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMonitorProps) {
+  const { t } = useLanguage();
   const [pollingJobs, setPollingJobs] = useState<Set<string>>(new Set());
 
   const startPolling = async (job: VeoGenerationJob) => {
@@ -97,13 +99,13 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
   const getStatusText = (status: VeoGenerationJob['status']) => {
     switch (status) {
       case 'pending':
-        return 'Pending';
+        return t.monitor.pending;
       case 'running':
-        return 'Running';
+        return t.monitor.running;
       case 'completed':
-        return 'Completed';
+        return t.monitor.completed;
       case 'failed':
-        return 'Failed';
+        return t.monitor.failed;
     }
   };
 
@@ -115,22 +117,22 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <RefreshCw className="h-5 w-5" />
-          Operation Monitor
+          {t.monitor.title}
         </CardTitle>
         <CardDescription>
-          Track the status of your video generation jobs
+          {t.monitor.description}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {jobs.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            No video generation jobs yet
+            {t.monitor.noJobsYet}
           </p>
         ) : (
           <div className="space-y-4">
             {pendingJobs.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Active Jobs</h4>
+                <h4 className="font-medium mb-2">{t.monitor.activeJobs}</h4>
                 <div className="space-y-2">
                   {pendingJobs.map((job) => (
                     <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -143,7 +145,7 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
                           {job.prompt}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Started: {job.createdAt.toLocaleTimeString()}
+                          {t.monitor.started}: {job.createdAt.toLocaleTimeString()}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -153,7 +155,7 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
                           onClick={() => checkStatus(job)}
                           disabled={!apiClient}
                         >
-                          Check Status
+                          {t.monitor.checkStatus}
                         </Button>
                         {job.status === 'pending' && (
                           <Button
@@ -162,7 +164,7 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
                             onClick={() => startPolling(job)}
                             disabled={!apiClient || pollingJobs.has(job.id)}
                           >
-                            {pollingJobs.has(job.id) ? 'Polling...' : 'Start Polling'}
+                            {pollingJobs.has(job.id) ? t.monitor.polling : t.monitor.startPolling}
                           </Button>
                         )}
                       </div>
@@ -174,7 +176,7 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
 
             {completedJobs.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Completed Jobs</h4>
+                <h4 className="font-medium mb-2">{t.monitor.completedJobs}</h4>
                 <div className="space-y-2">
                   {completedJobs.slice(0, 5).map((job) => (
                     <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -187,20 +189,20 @@ export function OperationMonitor({ apiClient, jobs, onJobUpdate }: OperationMoni
                           {job.prompt}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {job.completedAt ? 
-                            `Completed: ${job.completedAt.toLocaleTimeString()}` :
-                            `Started: ${job.createdAt.toLocaleTimeString()}`
+                          {job.completedAt ?
+                            `${t.monitor.completed}: ${job.completedAt.toLocaleTimeString()}` :
+                            `${t.monitor.started}: ${job.createdAt.toLocaleTimeString()}`
                           }
                         </p>
                         {job.error && (
                           <p className="text-xs text-red-500 mt-1">
-                            Error: {job.error}
+                            {t.monitor.error}: {job.error}
                           </p>
                         )}
                       </div>
                       {job.status === 'completed' && job.videos && (
                         <div className="text-sm text-green-600">
-                          {job.videos.length} video(s) generated
+                          {job.videos.length} {t.monitor.videosGenerated}
                         </div>
                       )}
                     </div>

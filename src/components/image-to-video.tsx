@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { VeoApiClient, generateJobId, convertImageToBase64, validateImageFile } from '@/lib/veo-api';
 import { VeoGenerationJob, VeoParameters } from '@/types/veo';
 import { ImageIcon, Upload, X, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ImageToVideoProps {
   apiClient: VeoApiClient | null;
@@ -16,6 +17,7 @@ interface ImageToVideoProps {
 }
 
 export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
+  const { t } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
     if (!file) return;
 
     if (!validateImageFile(file)) {
-      alert('Please select a valid image file (JPEG or PNG)');
+      alert(t.imageToVideo.pleaseSelectValidImage);
       return;
     }
 
@@ -95,7 +97,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
       removeImage();
     } catch (error) {
       console.error('Failed to generate video:', error);
-      alert(`Failed to generate video: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`${t.imageToVideo.failedToGenerate}: ${error instanceof Error ? error.message : t.common.unknownError}`);
     } finally {
       setIsGenerating(false);
     }
@@ -106,15 +108,15 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ImageIcon className="h-5 w-5" />
-          Image to Video
+          {t.imageToVideo.title}
         </CardTitle>
         <CardDescription>
-          Generate videos from images with optional text descriptions
+          {t.imageToVideo.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Upload Image</Label>
+          <Label>{t.imageToVideo.uploadImage}</Label>
           {!selectedImage ? (
             <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
@@ -122,10 +124,10 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
             >
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-sm text-gray-600">
-                Click to upload an image (JPEG or PNG)
+                {t.imageToVideo.clickToUpload}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Recommended: 720p or higher, 16:9 or 9:16 aspect ratio
+                {t.imageToVideo.recommendedSpecs}
               </p>
             </div>
           ) : (
@@ -155,10 +157,10 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="image-prompt">Text Prompt (optional)</Label>
+          <Label htmlFor="image-prompt">{t.imageToVideo.textPromptOptional}</Label>
           <Textarea
             id="image-prompt"
-            placeholder="Describe how the image should animate..."
+            placeholder={t.imageToVideo.textPromptPlaceholder}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
@@ -167,7 +169,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="image-sample-count">Number of Videos (1-4)</Label>
+            <Label htmlFor="image-sample-count">{t.imageToVideo.numberOfVideos}</Label>
             <Input
               id="image-sample-count"
               type="number"
@@ -178,7 +180,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image-duration">Duration (5-8 seconds)</Label>
+            <Label htmlFor="image-duration">{t.imageToVideo.duration}</Label>
             <Input
               id="image-duration"
               type="number"
@@ -191,10 +193,10 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="image-storage-uri">Storage URI (optional)</Label>
+          <Label htmlFor="image-storage-uri">{t.imageToVideo.storageUri}</Label>
           <Input
             id="image-storage-uri"
-            placeholder="gs://your-bucket/output/"
+            placeholder={t.imageToVideo.storageUriPlaceholder}
             value={storageUri}
             onChange={(e) => setStorageUri(e.target.value)}
           />
@@ -208,21 +210,21 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
             onChange={(e) => setEnhancePrompt(e.target.checked)}
             className="rounded border-gray-300"
           />
-          <Label htmlFor="image-enhance-prompt">Enhance prompt with AI</Label>
+          <Label htmlFor="image-enhance-prompt">{t.imageToVideo.enhancePrompt}</Label>
         </div>
 
-        <Button 
-          onClick={handleGenerate} 
+        <Button
+          onClick={handleGenerate}
           disabled={!apiClient || !selectedImage || isGenerating}
           className="w-full"
         >
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
+              {t.imageToVideo.generating}
             </>
           ) : (
-            'Generate Video'
+            t.imageToVideo.generateVideo
           )}
         </Button>
       </CardContent>

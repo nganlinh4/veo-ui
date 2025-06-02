@@ -8,21 +8,24 @@ import { ImageToVideo } from './image-to-video';
 import { OperationMonitor } from './operation-monitor';
 import { VideoGallery } from './video-gallery';
 import { SettingsPanel } from './settings-panel';
+import { LanguageSwitcher } from './language-switcher';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const TABS = [
-  { id: 'text-to-video', label: 'Text to Video' },
-  { id: 'image-to-video', label: 'Image to Video' },
-  { id: 'monitor', label: 'Monitor' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'settings', label: 'Settings' },
-] as const;
-
-type TabId = typeof TABS[number]['id'];
+type TabId = 'text-to-video' | 'image-to-video' | 'monitor' | 'gallery' | 'settings';
 
 export function VideoGenerator() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabId>('settings');
   const [apiClient, setApiClient] = useState<VeoApiClient | null>(null);
   const [jobs, setJobs] = useState<VeoGenerationJob[]>([]);
+
+  const TABS = [
+    { id: 'text-to-video' as const, label: t.tabs.textToVideo },
+    { id: 'image-to-video' as const, label: t.tabs.imageToVideo },
+    { id: 'monitor' as const, label: t.tabs.monitor },
+    { id: 'gallery' as const, label: t.tabs.gallery },
+    { id: 'settings' as const, label: t.tabs.settings },
+  ];
 
   const handleJobCreated = (job: VeoGenerationJob) => {
     setJobs(prev => [job, ...prev]);
@@ -56,13 +59,16 @@ export function VideoGenerator() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Veo Video Generator
-          </h1>
-          <p className="text-lg text-gray-600">
-            Generate high-quality videos using Google's Veo AI model
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              {t.app.title}
+            </h1>
+            <p className="text-lg text-gray-600">
+              {t.app.description}
+            </p>
+          </div>
+          <LanguageSwitcher />
         </div>
 
         {/* Tab Navigation */}
@@ -145,12 +151,12 @@ export function VideoGenerator() {
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${apiClient ? 'bg-green-500' : 'bg-red-500'}`} />
                 <span className="text-gray-600">
-                  {apiClient ? 'Connected' : 'Not configured'}
+                  {apiClient ? t.app.connected : t.app.notConfigured}
                 </span>
               </div>
               <div className="text-gray-400">|</div>
               <div className="text-gray-600">
-                {jobs.length} total jobs
+                {jobs.length} {t.app.totalJobs}
               </div>
             </div>
           </div>

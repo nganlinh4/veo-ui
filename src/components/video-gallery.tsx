@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { VeoGenerationJob } from '@/types/veo';
 import { Play, Download, ExternalLink } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VideoGalleryProps {
   jobs: VeoGenerationJob[];
 }
 
 export function VideoGallery({ jobs }: VideoGalleryProps) {
-  const completedJobs = jobs.filter(job => 
+  const { t } = useLanguage();
+  const completedJobs = jobs.filter(job =>
     job.status === 'completed' && job.videos && job.videos.length > 0
   );
 
@@ -36,7 +38,7 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download video:', error);
-      alert('Failed to download video');
+      alert(t.gallery.failedToDownload);
     }
   };
 
@@ -49,16 +51,16 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Play className="h-5 w-5" />
-          Video Gallery
+          {t.gallery.title}
         </CardTitle>
         <CardDescription>
-          View and download your generated videos
+          {t.gallery.description}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {completedJobs.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            No completed videos yet
+            {t.gallery.noCompletedVideos}
           </p>
         ) : (
           <div className="space-y-6">
@@ -76,12 +78,12 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
                     </div>
                   )}
                   <p className="text-sm text-muted-foreground mt-1">
-                    Generated: {job.completedAt?.toLocaleString()}
+                    {t.gallery.generated}: {job.completedAt?.toLocaleString()}
                   </p>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Duration: {job.parameters.durationSeconds}s | 
-                    Count: {job.parameters.sampleCount} | 
-                    Enhanced: {job.parameters.enhancePrompt ? 'Yes' : 'No'}
+                    {t.gallery.duration}: {job.parameters.durationSeconds}s |
+                    {t.gallery.count}: {job.parameters.sampleCount} |
+                    {t.gallery.enhanced}: {job.parameters.enhancePrompt ? t.gallery.yes : t.gallery.no}
                   </div>
                 </div>
                 
@@ -90,22 +92,22 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
                     <div key={index} className="border rounded-lg p-3">
                       <div className="aspect-video bg-gray-100 rounded mb-3 flex items-center justify-center">
                         {video.bytesBase64Encoded ? (
-                          <video 
-                            controls 
+                          <video
+                            controls
                             className="w-full h-full rounded"
                             src={`data:${video.mimeType || 'video/mp4'};base64,${video.bytesBase64Encoded}`}
                           >
-                            Your browser does not support the video tag.
+                            {t.gallery.browserNotSupported}
                           </video>
                         ) : video.uri ? (
                           <div className="text-center">
                             <ExternalLink className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-600">Video stored in Cloud Storage</p>
+                            <p className="text-sm text-gray-600">{t.gallery.videoStoredInCloudStorage}</p>
                           </div>
                         ) : (
                           <div className="text-center">
                             <Play className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-600">Video not available</p>
+                            <p className="text-sm text-gray-600">{t.gallery.videoNotAvailable}</p>
                           </div>
                         )}
                       </div>
@@ -122,7 +124,7 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
                             className="flex-1"
                           >
                             <Download className="h-4 w-4 mr-1" />
-                            Download
+                            {t.gallery.download}
                           </Button>
                         )}
                         {video.uri && (
@@ -133,7 +135,7 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
                             className="flex-1"
                           >
                             <ExternalLink className="h-4 w-4 mr-1" />
-                            Open
+                            {t.gallery.open}
                           </Button>
                         )}
                       </div>
