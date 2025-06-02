@@ -15,13 +15,30 @@ export class VeoApiClient {
   }
 
   private async getAccessToken(): Promise<string> {
+    // First, try to use the provided access token
     if (this.config.accessToken) {
       return this.config.accessToken;
     }
-    
-    // In a real implementation, this would handle OAuth2 flow
-    // For now, we'll assume the token is provided
-    throw new Error('Access token is required. Please provide a valid Google Cloud access token.');
+
+    // Try to get token from our API endpoint (which uses gcloud CLI)
+    try {
+      const response = await fetch('/api/auth/token');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.accessToken) {
+          return data.accessToken;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to get token from API:', error);
+    }
+
+    // Fallback: check environment variable (for server-side usage)
+    if (typeof process !== 'undefined' && process.env?.GOOGLE_CLOUD_ACCESS_TOKEN) {
+      return process.env.GOOGLE_CLOUD_ACCESS_TOKEN;
+    }
+
+    throw new Error('Access token is required. Please authenticate with Google Cloud or provide a valid access token.');
   }
 
   async generateVideo(request: VeoRequest): Promise<string> {
