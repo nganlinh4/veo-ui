@@ -10,6 +10,7 @@ import { VeoApiClient, generateJobId, convertImageToBase64, validateImageFile } 
 import { VeoGenerationJob, VeoParameters } from '@/types/veo';
 import { ImageIcon, Upload, X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ErrorDisplay } from '@/components/error-display';
 
 interface ImageToVideoProps {
   apiClient: VeoApiClient | null;
@@ -26,6 +27,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
   const [enhancePrompt, setEnhancePrompt] = useState(true);
   const [storageUri, setStorageUri] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,12 +35,13 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
     if (!file) return;
 
     if (!validateImageFile(file)) {
-      alert(t.imageToVideo.pleaseSelectValidImage);
+      setError(t.imageToVideo.pleaseSelectValidImage);
       return;
     }
 
     setSelectedImage(file);
-    
+    setError(null); // Clear any previous errors
+
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -59,6 +62,8 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
     if (!apiClient || !selectedImage || !prompt.trim()) return;
 
     setIsGenerating(true);
+    setError(null); // Clear previous errors
+
     try {
       const base64Image = await convertImageToBase64(selectedImage);
       
@@ -97,7 +102,7 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
       removeImage();
     } catch (error) {
       console.error('Failed to generate video:', error);
-      alert(`${t.imageToVideo.failedToGenerate}: ${error instanceof Error ? error.message : t.common.unknownError}`);
+      setError(error instanceof Error ? error.message : t.common.unknownError);
     } finally {
       setIsGenerating(false);
     }
@@ -115,6 +120,15 @@ export function ImageToVideo({ apiClient, onJobCreated }: ImageToVideoProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Error Display */}
+        {error && (
+          <ErrorDisplay
+            error={error}
+            onDismiss={() => setError(null)}
+            className="mb-4"
+          />
+        )}
+
         <div className="space-y-2">
           <Label>{t.imageToVideo.uploadImage}</Label>
           {!selectedImage ? (

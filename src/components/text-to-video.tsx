@@ -10,6 +10,7 @@ import { VeoApiClient, generateJobId } from '@/lib/veo-api';
 import { VeoGenerationJob, VeoParameters } from '@/types/veo';
 import { Video, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ErrorDisplay } from '@/components/error-display';
 
 interface TextToVideoProps {
   apiClient: VeoApiClient | null;
@@ -24,11 +25,14 @@ export function TextToVideo({ apiClient, onJobCreated }: TextToVideoProps) {
   const [enhancePrompt, setEnhancePrompt] = useState(true);
   const [storageUri, setStorageUri] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!apiClient || !prompt.trim()) return;
 
     setIsGenerating(true);
+    setError(null); // Clear previous errors
+
     try {
       const parameters: VeoParameters = {
         sampleCount,
@@ -43,7 +47,7 @@ export function TextToVideo({ apiClient, onJobCreated }: TextToVideoProps) {
       };
 
       const operationName = await apiClient.generateVideo(request);
-      
+
       const job: VeoGenerationJob = {
         id: generateJobId(),
         operationName,
@@ -57,7 +61,7 @@ export function TextToVideo({ apiClient, onJobCreated }: TextToVideoProps) {
       setPrompt('');
     } catch (error) {
       console.error('Failed to generate video:', error);
-      alert(`${t.textToVideo.failedToGenerate}: ${error instanceof Error ? error.message : t.common.unknownError}`);
+      setError(error instanceof Error ? error.message : t.common.unknownError);
     } finally {
       setIsGenerating(false);
     }
@@ -75,6 +79,15 @@ export function TextToVideo({ apiClient, onJobCreated }: TextToVideoProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Error Display */}
+        {error && (
+          <ErrorDisplay
+            error={error}
+            onDismiss={() => setError(null)}
+            className="mb-4"
+          />
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="text-prompt">{t.textToVideo.textPrompt}</Label>
           <Textarea

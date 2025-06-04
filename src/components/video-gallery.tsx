@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VeoGenerationJob } from '@/types/veo';
 import { Play, Download, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ErrorDisplay } from '@/components/error-display';
 
 interface VideoGalleryProps {
   jobs: VeoGenerationJob[];
@@ -12,12 +14,16 @@ interface VideoGalleryProps {
 
 export function VideoGallery({ jobs }: VideoGalleryProps) {
   const { t } = useLanguage();
+  const [error, setError] = useState<string | null>(null);
+
   const completedJobs = jobs.filter(job =>
     job.status === 'completed' && job.videos && job.videos.length > 0
   );
 
   const downloadVideo = async (videoData: string, filename: string) => {
     try {
+      setError(null); // Clear previous errors
+
       // Convert base64 to blob
       const byteCharacters = atob(videoData);
       const byteNumbers = new Array(byteCharacters.length);
@@ -26,7 +32,7 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'video/mp4' });
-      
+
       // Create download link
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -38,7 +44,7 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download video:', error);
-      alert(t.gallery.failedToDownload);
+      setError(t.gallery.failedToDownload || 'Failed to download video');
     }
   };
 
@@ -58,6 +64,15 @@ export function VideoGallery({ jobs }: VideoGalleryProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Error Display */}
+        {error && (
+          <ErrorDisplay
+            error={error}
+            onDismiss={() => setError(null)}
+            className="mb-4"
+          />
+        )}
+
         {completedJobs.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             {t.gallery.noCompletedVideos}
